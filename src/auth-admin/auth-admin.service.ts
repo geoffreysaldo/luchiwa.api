@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminRepository } from './admin.repository';
 import { SignUpInfoAdminDto } from './dto/signup-info-admin.dto';
@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthAdminService {
-
+    private logger = new Logger('AuthAdminService')
     constructor(
         @InjectRepository(AdminRepository)
         private adminRepository: AdminRepository,
@@ -19,6 +19,7 @@ export class AuthAdminService {
         if(signUpInfoAdminDto.password !== signUpInfoAdminDto.checkPassword){
             throw new BadRequestException("Veuillez vérifier votre confirmation de mot de passe")
         }
+        this.logger.verbose(`The admin signup: ${signUpInfoAdminDto.email} succeed` )
         return this.adminRepository.signUp(signUpInfoAdminDto)
     }
 
@@ -32,6 +33,7 @@ export class AuthAdminService {
 
         const payload: JwtPayload = { email: admin.email };
         const accessToken = await this.jwtService.sign(payload);
+        this.logger.verbose(`The admin login: ${loginForm.email} succeed` )
         return { email: admin.email, id: admin._id, accessToken: accessToken, expiresIn: 1800 }
     }
 }

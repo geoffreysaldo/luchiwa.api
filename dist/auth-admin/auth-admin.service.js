@@ -23,11 +23,13 @@ let AuthAdminService = class AuthAdminService {
     constructor(adminRepository, jwtService) {
         this.adminRepository = adminRepository;
         this.jwtService = jwtService;
+        this.logger = new common_1.Logger('AuthAdminService');
     }
     async signup(signUpInfoAdminDto) {
         if (signUpInfoAdminDto.password !== signUpInfoAdminDto.checkPassword) {
             throw new common_1.BadRequestException("Veuillez vérifier votre confirmation de mot de passe");
         }
+        this.logger.verbose(`The admin signup: ${signUpInfoAdminDto.email} succeed`);
         return this.adminRepository.signUp(signUpInfoAdminDto);
     }
     async login(loginForm) {
@@ -38,6 +40,7 @@ let AuthAdminService = class AuthAdminService {
         }
         const payload = { email: admin.email };
         const accessToken = await this.jwtService.sign(payload);
+        this.logger.verbose(`The admin login: ${loginForm.email} succeed`);
         return { email: admin.email, id: admin._id, accessToken: accessToken, expiresIn: 1800 };
     }
 };

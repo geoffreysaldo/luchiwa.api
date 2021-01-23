@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, NotAcceptableException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Logger } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -14,7 +14,7 @@ import { UserInfoDto } from './dto/user-info.dto';
 
 @Injectable()
 export class AuthService {
-
+    private logger = new Logger('AuthService')
     constructor(
         @InjectRepository(UserRepository)
         private userRepository: UserRepository,
@@ -37,6 +37,7 @@ export class AuthService {
 
         const payload: JwtPayload = { email: user.email };
         const accessToken = await this.jwtService.sign(payload);
+        this.logger.verbose(`The user login: ${authCredentialsDto.email} succeed`)
         return { lastname: user.lastname, firstname: user.firstname, email: user.email, id: user._id, accessToken: accessToken, expiresIn: 1800}
     }
 
@@ -60,8 +61,8 @@ export class AuthService {
         return validation
     }
 
-    /*async updateUser(user: User, userInfoDto: UserInfoDto): Promise<Object>{
+    async updateUser(user: User, userInfoDto: UserInfoDto): Promise<Object>{
         const updateUser = await this.userRepository.updateUser(user, userInfoDto);
         return updateUser;
-    }*/
+    }
 }

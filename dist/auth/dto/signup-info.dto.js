@@ -51,21 +51,16 @@ __decorate([
 __decorate([
     class_validator_1.IsString(),
     class_validator_1.IsOptional(),
-    class_validator_1.MinLength(5, { message: 'Votre adresse est trop courte' }),
-    class_validator_1.MaxLength(50, { message: 'Votre adresse est trop longue' }),
     __metadata("design:type", String)
 ], SignUpInfoDto.prototype, "address", void 0);
 __decorate([
     class_validator_1.IsString(),
     class_validator_1.IsOptional(),
-    class_validator_1.MinLength(3, { message: 'Votre ville est trop courte' }),
-    class_validator_1.MaxLength(30, { message: 'Votre ville est trop longue' }),
     __metadata("design:type", String)
 ], SignUpInfoDto.prototype, "city", void 0);
 __decorate([
     class_validator_1.IsString(),
     class_validator_1.IsOptional(),
-    class_validator_1.Length(5, 5),
     __metadata("design:type", String)
 ], SignUpInfoDto.prototype, "zipcode", void 0);
 __decorate([

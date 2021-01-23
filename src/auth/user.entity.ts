@@ -1,5 +1,7 @@
-import { BaseEntity, Entity, Column, ObjectIdColumn, Unique, OneToOne, JoinColumn, PrimaryGeneratedColumn} from 'typeorm';
+import { BaseEntity, Entity, Column, ObjectIdColumn, Unique} from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import {IsEmail} from "class-validator";
+
 @Entity()
 @Unique(['email'])
 export class User extends BaseEntity {
@@ -7,6 +9,7 @@ export class User extends BaseEntity {
     _id: string;
 
     @Column()
+    @IsEmail()
     email: string
 
     @Column()

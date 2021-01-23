@@ -1,7 +1,7 @@
 import { Repository, EntityRepository } from 'typeorm';
 import { User } from './user.entity';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
-import { ConflictException, ServiceUnavailableException, NotFoundException, NotAcceptableException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, ServiceUnavailableException, NotFoundException, NotAcceptableException, UnauthorizedException, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { transporter } from './email/emailSender';
 import * as randomstring from 'randomstring';
@@ -12,9 +12,9 @@ import { UserInfoDto } from './dto/user-info.dto';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User>{
+    private logger = new Logger('AuthService')
 
     async signUp(signUpInfoDto: SignUpInfoDto): Promise<Object>{
-        console.log(signUpInfoDto)
         const user = new User();
         user.firstname = signUpInfoDto.firstname;
         user.lastname = signUpInfoDto.lastname;
@@ -23,6 +23,11 @@ export class UserRepository extends Repository<User>{
         signUpInfoDto.zipcode? user.zipcode = signUpInfoDto.zipcode: null;
         user.phone = signUpInfoDto.phone;
 
+        const isUniqueEmail = await this.isUniqueEmail(signUpInfoDto.email)
+
+        if(!isUniqueEmail){
+            throw new ConflictException('Cet email existe déjà, veuillez utiliser en utiliser un autre')
+        }
         user.email = signUpInfoDto.email;
         user.salt = await bcrypt.genSalt();
         user.password = await this.hashPassword(signUpInfoDto.password, user.salt);
@@ -34,13 +39,14 @@ export class UserRepository extends Repository<User>{
                 from: 'luchiwalaseyne@gmail.com',
                 to: user.email.toLocaleLowerCase(),
                 subject: 'Confirmation de compte Luchiwa sushi',
-                text: 'Afin de valider votre compte, veuillez joindre l\'url suivante : http://localhost:4200/validation/' + user.secretToken
+                text: 'Afin de valider votre compte, veuillez joindre l\'url suivante : http://localhost:4200/auth/validation/' + user.secretToken
             };
             transporter.sendMail(mailOptions, function(err, data){
                 if(err){
                     throw new ServiceUnavailableException('La création de compte a échouée, l\'email de validation n\'a pas pu être envoyé')               
                 }
             })
+            this.logger.verbose(`The user signup: ${signUpInfoDto.email} succeed`)
             return {message:'Votre compte a été créé avec succès, un email de validation vient de vous être envoyé'}
         } catch(error){
             if(error.code === 11000){
@@ -52,7 +58,6 @@ export class UserRepository extends Repository<User>{
     async validateUserPassword(authCredentialsDto): Promise<any>{
         const { email, password} = authCredentialsDto
         const user = await this.findOne({email});
-        console.log(user)
         if(!user.isActive){
             throw new UnauthorizedException('Votre compte n\'a pas encore été activé, Un email d\'activation vous a été envoyé afin de l\'activé.')
         }
@@ -67,14 +72,14 @@ export class UserRepository extends Repository<User>{
     async validateUserAccount(token): Promise<Object>{
         const user = await this.find({where: {"secretToken": token.token}})
 
-        if(!user) {
+        if(user.length !== 1) {
             throw new NotFoundException("Aucun utilisateur n'a pu être validé")
         }
-
         const update = { secretToken: null, isActive: true }
-        const userUpdate = await this.update(token, update)
+        const userUpdate = await this.update(user[0]._id, update)
 
-        return {message: "Votre compte a été validé avec succès !"}
+        this.logger.verbose(`The account of token ${token.token} is validate`)
+        return {message: "Félicitaition ! Votre compte a été validé avec succès !"}
     }
 
     async askUpdatePassword(user: User): Promise<Object>{
@@ -94,7 +99,7 @@ export class UserRepository extends Repository<User>{
                 from: 'luchiwalaseyne@gmail.com',
                 to: user.email.toLocaleLowerCase(),
                 subject: 'Modification de mot passe Luchiwa sushi',
-                text: 'Afin de modifier votre mot de passe, veuillez joindre l\'url suivante : http://localhost:4200/update_password/' + secretToken
+                text: 'Afin de modifier votre mot de passe, veuillez joindre l\'url suivante : http://localhost:4200/auth/updatepassword/' + secretToken
             };
             transporter.sendMail(mailOptions, function(err, data){
                 if(err){
@@ -107,6 +112,7 @@ export class UserRepository extends Repository<User>{
             }
         }
 
+        this.logger.verbose(`The password change request of ${user.email} has been created`)
         return {message: "Un email de modification de mot de passe vient de vous être envoyé !"}
     }
 
@@ -128,7 +134,7 @@ export class UserRepository extends Repository<User>{
                 from: 'luchiwalaseyne@gmail.com',
                 to: user.email.toLocaleLowerCase(),
                 subject: 'Modification de mot passe Luchiwa sushi',
-                text: 'Afin de modifier votre mot de passe, veuillez joindre l\'url suivante : http://localhost:4200/update_password/' + secretToken
+                text: 'Afin de modifier votre mot de passe, veuillez joindre l\'url suivante : http://localhost:4200/auth/updatepassword/' + secretToken
             };
             transporter.sendMail(mailOptions, function(err, data){
                 if(err){
@@ -141,6 +147,7 @@ export class UserRepository extends Repository<User>{
             }
         }
 
+        this.logger.verbose(`The password change request of ${email} has been created`)
         return {message: "Un email de modification de mot de passe vient de vous être envoyé !"}
     }
 
@@ -156,16 +163,26 @@ export class UserRepository extends Repository<User>{
         const update = {password: await this.hashPassword(updatePassword.password, user.salt), secretToken: null}
         const userUpdate = await this.update(token, update)
 
+        this.logger.verbose(`The password update has been made successful`)
         return {message: "Votre mot de passe a été modifié avec succès !"}
     }
 
-   /* async updateUser(user: User, userInfoDto: UserInfoDto): Promise<Object>{
-        const userInfo = {userInfo: userInfoDto}
-        const userUpdate = await this.update(user._id, userInfo)
-        return {}
-    }*/
+    async updateUser(user: User, userInfoDto: UserInfoDto): Promise<Object>{
+        const userUpdate = await this.update(user._id, userInfoDto)
+        this.logger.verbose(`The update of account ${user.email} has been made successfuly`)
+        return userUpdate
+    }
 
     private async hashPassword(password: string, salt: string){
         return bcrypt.hash(password, salt)
     }
+
+    async isUniqueEmail(email: string): Promise<boolean> {
+        const user = await this.findOne({email});
+        let isUser = null;
+        user ? isUser = false : isUser = true
+        return isUser;
+    }
+
+
 }

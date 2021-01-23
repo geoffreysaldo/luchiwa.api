@@ -54,15 +54,9 @@ export class AuthController {
         return this.authService.validateAccount(token);
     }
 
-    /*@Put('update_user')
+    @Put('update_user')
     @UseGuards(AuthGuard())
     updateUser(@GetUser() user: User, @Body(ValidationPipe) userInfoDto: UserInfoDto): Promise<Object>{
         return this.authService.updateUser(user, userInfoDto);
-    }*/
-
-    @Post('/test')
-    @UseGuards(AuthGuard())
-    test(@GetUser() user: User){
-        console.log(user)
     }
 }

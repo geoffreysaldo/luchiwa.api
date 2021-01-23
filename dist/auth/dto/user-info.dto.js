@@ -15,7 +15,6 @@ class UserInfoDto {
 }
 __decorate([
     class_validator_1.IsEmail({}, { message: 'Votre email est invalide' }),
-    class_validator_1.IsOptional(),
     __metadata("design:type", String)
 ], UserInfoDto.prototype, "email", void 0);
 __decorate([
@@ -40,7 +39,6 @@ __decorate([
 ], UserInfoDto.prototype, "zipcode", void 0);
 __decorate([
     class_validator_1.IsString(),
-    class_validator_1.IsOptional(),
     class_validator_1.Length(10, 10),
     __metadata("design:type", String)
 ], UserInfoDto.prototype, "phone", void 0);

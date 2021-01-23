@@ -21,6 +21,7 @@ let AuthService = class AuthService {
     constructor(userRepository, jwtService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
+        this.logger = new common_1.Logger('AuthService');
     }
     async signUp(signUpInfoDto) {
         if (signUpInfoDto.password !== signUpInfoDto.checkPassword) {
@@ -35,6 +36,7 @@ let AuthService = class AuthService {
         }
         const payload = { email: user.email };
         const accessToken = await this.jwtService.sign(payload);
+        this.logger.verbose(`The user login: ${authCredentialsDto.email} succeed`);
         return { lastname: user.lastname, firstname: user.firstname, email: user.email, id: user._id, accessToken: accessToken, expiresIn: 1800 };
     }
     async askUpdatePassword(user) {
@@ -52,6 +54,10 @@ let AuthService = class AuthService {
     async validateAccount(token) {
         const validation = await this.userRepository.validateUserAccount(token);
         return validation;
+    }
+    async updateUser(user, userInfoDto) {
+        const updateUser = await this.userRepository.updateUser(user, userInfoDto);
+        return updateUser;
     }
 };
 AuthService = __decorate([

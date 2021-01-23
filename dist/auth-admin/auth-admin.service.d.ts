@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 export declare class AuthAdminService {
     private adminRepository;
     private jwtService;
+    private logger;
     constructor(adminRepository: AdminRepository, jwtService: JwtService);
     signup(signUpInfoAdminDto: SignUpInfoAdminDto): Promise<Object>;
     login(loginForm: AuthCredentialsDto): Promise<any>;

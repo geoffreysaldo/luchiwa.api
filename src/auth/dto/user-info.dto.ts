@@ -2,7 +2,6 @@ import { IsEmail, IsOptional, IsString, MinLength, MaxLength, Length } from "cla
 
 export class UserInfoDto {
     @IsEmail({}, { message: 'Votre email est invalide' })
-    @IsOptional()
     email: string;
 
     @IsString()
@@ -23,7 +22,6 @@ export class UserInfoDto {
     zipcode: string;
     
     @IsString()
-    @IsOptional()
     @Length(10, 10)
     phone: string;
 }

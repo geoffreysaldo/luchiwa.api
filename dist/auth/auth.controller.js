@@ -22,6 +22,7 @@ const user_entity_1 = require("./user.entity");
 const update_password_dto_1 = require("./dto/update-password.dto");
 const email_dto_1 = require("./dto/email.dto");
 const signup_info_dto_1 = require("./dto/signup-info.dto");
+const user_info_dto_1 = require("./dto/user-info.dto");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -50,8 +51,8 @@ let AuthController = class AuthController {
     validate(token) {
         return this.authService.validateAccount(token);
     }
-    test(user) {
-        console.log(user);
+    updateUser(user, userInfoDto) {
+        return this.authService.updateUser(user, userInfoDto);
     }
 };
 __decorate([
@@ -106,13 +107,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "validate", null);
 __decorate([
-    common_1.Post('/test'),
+    common_1.Put('update_user'),
     common_1.UseGuards(passport_1.AuthGuard()),
-    __param(0, get_user_decorator_1.GetUser()),
+    __param(0, get_user_decorator_1.GetUser()), __param(1, common_1.Body(common_1.ValidationPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [user_entity_1.User]),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "test", null);
+    __metadata("design:paramtypes", [user_entity_1.User, user_info_dto_1.UserInfoDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "updateUser", null);
 AuthController = __decorate([
     common_1.Controller('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
